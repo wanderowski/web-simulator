@@ -2,7 +2,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=0.5, maximum-scale=5.0, minimum-scale=0.86"
+    />
     <link
       href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
       rel="stylesheet"
@@ -55,7 +58,7 @@
         <button
           id="startSimBtn"
           type="button"
-          class="bg-blue-500 text-white w-full py-3 px-24 rounded-full text-sm mt-6 hover:bg-blue-700 disabled:bg-blue-700"
+          class="bg-blue-500 text-white w-full py-3 px-24 rounded-full text-sm mt-6 hover:bg-blue-700 disabled:bg-gray-300"
         >
           Start
         </button>
@@ -65,7 +68,7 @@
       <div><span>Current time: </span><span id="timeEl">0</span></div>
       <canvas> </canvas>
     </div>
-
+    <script src="lodash.js"></script>
     <script src="./index.js"></script>
   </body>
 </html>

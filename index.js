@@ -5,13 +5,15 @@ canvas.width = 700;
 canvas.height = 700;
 
 const startSimBtn = document.querySelector("#startSimBtn");
+const stopSimBtn = document.querySelector("#stopSimBtn");
+
 const modalEl = document.querySelector("#modalEl");
 const timeEl = document.querySelector("#timeEl");
 
 let numOfNodes, simTime;
 
 class Node {
-  constructor(x, y, radius, color, velocity, path, id = 0) {
+  constructor(x, y, radius, color, velocity, path, id) {
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -22,9 +24,10 @@ class Node {
     this.currentPoint = 0;
     this.nextPoint = 1;
     this.reverse = false;
+    this.currConnectedNodes = [];
   }
   draw() {
-    this.path.forEach((point) => {
+    this.path?.forEach((point) => {
       c.beginPath();
       c.arc(point[0], point[1], 2, 0, Math.PI * 2);
       c.strokeStyle = "blue";
@@ -76,6 +79,33 @@ class Node {
   }
 }
 
+class StaticNode {
+  constructor(x, y, radius, color, id = 0) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.color = color;
+    this.id = id;
+  }
+  draw() {
+    c.beginPath();
+    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    c.strokeStyle = this.color;
+    c.stroke();
+    c.fillStyle = this.color;
+    c.fillText(
+      `Node ${this.id}`,
+      this.x - this.radius,
+      this.y - this.radius - 5
+    );
+  }
+
+  update() {
+    this.draw();
+    // if reached the point
+  }
+}
+
 let nodes = [];
 let logArray = [];
 let currentTime = 0;
@@ -115,18 +145,37 @@ function getRandomPath() {
 function init() {
   nodes = [];
   currentTime = 0;
-
+  nodes.push(
+    new Node(
+      canvas.width / 2,
+      100,
+      75,
+      "green",
+      { x: 0, y: 0 },
+      getRandomPath(),
+      0
+    ),
+    new Node(
+      canvas.width / 2,
+      500,
+      100,
+      "green",
+      { x: 0, y: 0 },
+      getRandomPath(),
+      1
+    )
+  );
   for (let i = 0; i < numOfNodes; i++) {
     const path = getRandomPath();
     nodes.push(
       new Node(
         path[0][0],
         path[0][1],
-        20,
+        50,
         "red",
         calculateVelocity(path[0], path[1]),
         path,
-        i
+        i + 2
       )
     );
   }
@@ -147,18 +196,36 @@ function animate() {
 
       nodes.forEach((otherNode, otherNodeIndex) => {
         const dist = Math.hypot(node.x - otherNode.x, node.y - otherNode.y);
-        if (dist < node.radius && node.id !== otherNode.id) {
-          console.log(
-            `Node ${node.id} connected to Node ${otherNode.id} at ${currentTime} sec.`
-          );
-          if (
-            !(
-              logArray[node.id][otherNode.id] || logArray[otherNode.id][node.id]
-            )
-          ) {
-            logArray[node.id][otherNode.id] = currentTime;
-            logArray[otherNode.id][node.id] = currentTime;
+        if (dist <= node.radius && node.id !== otherNode.id) {
+          if (!node.currConnectedNodes.includes(otherNode.id)) {
+            // console.log(`Node ${node.id} connected to Node ${otherNode.id}`);
+            node.currConnectedNodes.push(otherNode.id);
+            const temp = [...logArray[node.id][otherNode.id]];
+            temp.push(currentTime);
+            logArray[node.id][otherNode.id] = [...temp];
+
+            console.log(
+              `After pushing in Node ${node.id} connected: `,
+              logArray
+            );
           }
+        } else if (
+          dist > node.radius &&
+          node.currConnectedNodes.includes(otherNode.id) &&
+          node.id !== otherNode.id
+        ) {
+          // console.log(`Node ${node.id} disconnected from Node ${otherNode.id}`);
+          const temp = [...logArray[node.id][otherNode.id]];
+          temp.push(currentTime);
+          logArray[node.id][otherNode.id] = [...temp];
+
+          console.log(
+            `After pushing in Node ${node.id} disconnected: `,
+            logArray
+          );
+          node.currConnectedNodes = node.currConnectedNodes.filter(
+            (id) => id !== otherNode.id
+          );
         }
       });
     });
@@ -166,7 +233,6 @@ function animate() {
     setTimeout(() => {
       cancelAnimationFrame(animationId);
       startSimBtn.disabled = false;
-      console.log("Log Array: ", logArray);
       exportToCsv();
     }, 0);
   }
@@ -176,14 +242,14 @@ const exportToCsv = () => {
   var CsvString = "";
   logArray.forEach((RowItem) => {
     RowItem.forEach((ColItem) => {
-      CsvString += ColItem + ",";
+      CsvString += ColItem + ";";
     });
     CsvString += "\r\n";
   });
   CsvString = "data:application/csv," + encodeURIComponent(CsvString);
   var x = document.createElement("A");
   x.setAttribute("href", CsvString);
-  x.setAttribute("download", "somedata.csv");
+  x.setAttribute("download", "simData.csv");
   document.body.appendChild(x);
   x.click();
 };
@@ -193,8 +259,8 @@ startSimBtn.addEventListener("click", (e) => {
   numOfNodes = document.querySelector("#numOfNodes").value * 1;
   simTime = document.querySelector("#simTime").value * 1;
   if (numOfNodes || simTime) {
-    logArray = [...Array(numOfNodes)].map((e) =>
-      Array(numOfNodes).fill(undefined)
+    logArray = [...Array(numOfNodes + 2)].map((e) =>
+      Array(numOfNodes + 2).fill(Array(0))
     );
     init();
     startSimBtn.disabled = true;
