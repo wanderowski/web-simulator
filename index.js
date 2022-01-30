@@ -6,11 +6,12 @@ canvas.height = 700;
 
 const startSimBtn = document.querySelector("#startSimBtn");
 const stopSimBtn = document.querySelector("#stopSimBtn");
+const routingSelect = document.querySelector("#routingSelect");
 
 const modalEl = document.querySelector("#modalEl");
 const timeEl = document.querySelector("#timeEl");
 
-let numOfNodes, simTime;
+let numOfNodes, simTime, routing;
 
 class Node {
   constructor(x, y, radius, color, velocity, path, id) {
@@ -158,7 +159,7 @@ function init() {
     new Node(
       canvas.width / 2,
       500,
-      100,
+      75,
       "green",
       { x: 0, y: 0 },
       getRandomPath(),
@@ -204,10 +205,10 @@ function animate() {
             temp.push(currentTime);
             logArray[node.id][otherNode.id] = [...temp];
 
-            console.log(
-              `After pushing in Node ${node.id} connected: `,
-              logArray
-            );
+            // console.log(
+            //   `After pushing in Node ${node.id} connected: `,
+            //   logArray
+            // );
           }
         } else if (
           dist > node.radius &&
@@ -219,10 +220,10 @@ function animate() {
           temp.push(currentTime);
           logArray[node.id][otherNode.id] = [...temp];
 
-          console.log(
-            `After pushing in Node ${node.id} disconnected: `,
-            logArray
-          );
+          // console.log(
+          //   `After pushing in Node ${node.id} disconnected: `,
+          //   logArray
+          // );
           node.currConnectedNodes = node.currConnectedNodes.filter(
             (id) => id !== otherNode.id
           );
@@ -258,13 +259,13 @@ startSimBtn.addEventListener("click", (e) => {
   e.preventDefault();
   numOfNodes = document.querySelector("#numOfNodes").value * 1;
   simTime = document.querySelector("#simTime").value * 1;
-  if (numOfNodes || simTime) {
+  routing = routingSelect.value;
+  if (numOfNodes && simTime && routing) {
     logArray = [...Array(numOfNodes + 2)].map((e) =>
       Array(numOfNodes + 2).fill(Array(0))
     );
     init();
     startSimBtn.disabled = true;
-
     animate();
   }
 });
