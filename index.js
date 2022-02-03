@@ -11,10 +11,26 @@ const routingSelect = document.querySelector("#routingSelect");
 const modalEl = document.querySelector("#modalEl");
 const timeEl = document.querySelector("#timeEl");
 
-let numOfNodes, simTime, routing;
+let numOfNodes,
+  simTime,
+  routing,
+  stopSim = false;
 
+class Message {
+  constructor(id, source, destination, text, limit = null, count = 0) {
+    this.id = id;
+    this.source = source;
+    this.destination = destination;
+    this.text = text;
+    this.limit = limit;
+    this.count = count;
+  }
+  increment() {
+    this.count++;
+  }
+}
 class Node {
-  constructor(x, y, radius, color, velocity, path, id) {
+  constructor(x, y, radius, color, velocity, path, id, message = null) {
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -26,6 +42,7 @@ class Node {
     this.nextPoint = 1;
     this.reverse = false;
     this.currConnectedNodes = [];
+    this.message = message;
   }
   draw() {
     this.path?.forEach((point) => {
@@ -80,33 +97,6 @@ class Node {
   }
 }
 
-class StaticNode {
-  constructor(x, y, radius, color, id = 0) {
-    this.x = x;
-    this.y = y;
-    this.radius = radius;
-    this.color = color;
-    this.id = id;
-  }
-  draw() {
-    c.beginPath();
-    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    c.strokeStyle = this.color;
-    c.stroke();
-    c.fillStyle = this.color;
-    c.fillText(
-      `Node ${this.id}`,
-      this.x - this.radius,
-      this.y - this.radius - 5
-    );
-  }
-
-  update() {
-    this.draw();
-    // if reached the point
-  }
-}
-
 let nodes = [];
 let logArray = [];
 let currentTime = 0;
@@ -149,16 +139,23 @@ function init() {
   nodes.push(
     new Node(
       canvas.width / 2,
-      100,
+      75,
       75,
       "green",
       { x: 0, y: 0 },
       getRandomPath(),
-      0
+      0,
+      new Message(
+        0,
+        0,
+        1,
+        routing == "epidemic" ? "Hello from epidemic!" : "Hello from SNW",
+        routing == "epidemic" ? null : Math.floor(numOfNodes / 2)
+      )
     ),
     new Node(
       canvas.width / 2,
-      500,
+      canvas.height - 75,
       75,
       "green",
       { x: 0, y: 0 },
@@ -172,7 +169,7 @@ function init() {
       new Node(
         path[0][0],
         path[0][1],
-        50,
+        25,
         "red",
         calculateVelocity(path[0], path[1]),
         path,
@@ -186,9 +183,8 @@ let animationId;
 
 function animate() {
   timeEl.innerHTML = currentTime;
-  if (currentTime < simTime * 1) {
-    currentTime++;
-    animationId = requestAnimationFrame(animate);
+
+  if (currentTime < simTime && !stopSim) {
     c.fillStyle = "white";
     c.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -197,8 +193,32 @@ function animate() {
 
       nodes.forEach((otherNode, otherNodeIndex) => {
         const dist = Math.hypot(node.x - otherNode.x, node.y - otherNode.y);
+        // Detect the intersection of two coverage areas of nodes
         if (dist <= node.radius && node.id !== otherNode.id) {
           if (!node.currConnectedNodes.includes(otherNode.id)) {
+            if (node.message && !otherNode.message && routing == "epidemic") {
+              otherNode.message = { ...node.message };
+              console.log(
+                `Successfully transmitted from Node ${node.id} to Node ${otherNode.id}`
+              );
+              if (otherNode.id === otherNode.message?.destination) {
+                console.log("Delivered!");
+                stopSim = true;
+              }
+            }
+            if (node.message && !otherNode.message && routing == "snw") {
+              if (node.message?.count < node.message?.limit) {
+                otherNode.message = node.message;
+                node.message.increment();
+                console.log(
+                  `Successfully transmitted from Node ${node.id} to Node ${otherNode.id} with SnW routing`
+                );
+                if (otherNode.id === node.message?.destination) {
+                  console.log("Delivered!");
+                  stopSim = true;
+                }
+              }
+            }
             // console.log(`Node ${node.id} connected to Node ${otherNode.id}`);
             node.currConnectedNodes.push(otherNode.id);
             const temp = [...logArray[node.id][otherNode.id]];
@@ -230,18 +250,21 @@ function animate() {
         }
       });
     });
+    animationId = requestAnimationFrame(animate);
   } else {
     setTimeout(() => {
       cancelAnimationFrame(animationId);
       startSimBtn.disabled = false;
+      routingSelect.disabled = false;
       exportToCsv();
     }, 0);
   }
+  currentTime++;
 }
 
 const exportToCsv = () => {
   var CsvString = "";
-  logArray.forEach((RowItem) => {
+  logArray.forEach((RowItem, RowItemIndex) => {
     RowItem.forEach((ColItem) => {
       CsvString += ColItem + ";";
     });
@@ -266,6 +289,8 @@ startSimBtn.addEventListener("click", (e) => {
     );
     init();
     startSimBtn.disabled = true;
+    routingSelect.disabled = true;
+
     animate();
   }
 });
