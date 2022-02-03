@@ -1,65 +1,64 @@
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=0.5, maximum-scale=5.0, minimum-scale=0.86"
-    />
-    <link href="index.css" rel="stylesheet" />
-    <link
-      href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
-      rel="stylesheet"
-    />
 
-    <title>Simulator</title>
-  </head>
-  <body>
-    <div
-      class="flex items-center h-full shadow-sm"
-      id="modalEl"
-      style="flex: 20%"
-    >
-      <form
-        class="bg-white h-full max-w-lg w-full flex flex-col items-start justify-center border px-6"
-        style="border-color: black"
-      >
-        <label for="numOfNodes" class="my-2">Number of nodes: </label>
-        <input
-          name="numOfNodes"
-          id="numOfNodes"
-          class="text-4xl border-2 w-full border-gray-400 rounded-md my-2 px-2 py-1"
-        />
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=5.0, minimum-scale=0.86" />
+  <link href="index.css" rel="stylesheet" />
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.min.js"></script>
 
-        <label for="simTime" class="my-2">Simulation time: </label>
-        <input
-          name="simTime"
-          id="simTime"
-          class="text-4xl border-2 w-full border-gray-400 rounded-md my-2 px-2 py-1"
-        />
-        <label for="routing" class="my-2">DTN Protocol: </label>
-        <select
-          class="text-xl border-2 w-full border-gray-400 rounded-md my-2 px-2 py-2"
-          name="routing"
-          id="routingSelect"
-        >
-          <option value="epidemic">Epidemic</option>
-          <option value="snw">Spray-and-Wait</option>
-        </select>
-        <button
-          id="startSimBtn"
-          type="button"
-          class="bg-blue-500 text-white w-full py-3 px-24 rounded-full text-sm mt-6 hover:bg-blue-700"
-        >
-          Start
-        </button>
-      </form>
+  <title>Simulator</title>
+</head>
+
+<body>
+  <div class="flex items-start h-full  shadow-lg" id="modalEl" style="flex: 20%">
+    <form class="bg-white h-full w-full flex flex-col items-start justify-center border px-6"
+      style="border-color: black">
+      <label for="numOfNodes" class="my-2">Number of nodes: </label>
+      <input name="numOfNodes" id="numOfNodes"
+        class="text-4xl border-2 w-full border-gray-400 rounded-md my-2 px-2 py-1" />
+
+      <label for="simTime" class="my-2">Simulation time: </label>
+      <input name="simTime" id="simTime" class="text-4xl border-2 w-full border-gray-400 rounded-md my-2 px-2 py-1" />
+      <label for="routing" class="my-2">DTN Protocol: </label>
+      <select class="text-xl border-2 w-full border-gray-400 rounded-md my-2 px-2 py-2" name="routing"
+        id="routingSelect">
+        <option value="epidemic">Epidemic</option>
+        <option value="snw">Spray-and-Wait</option>
+      </select>
+      <button id="startSimBtn" type="button"
+        class="bg-blue-500 text-white w-full py-3 px-24 rounded-full text-sm mt-6 hover:bg-blue-700">
+        Start
+      </button>
+      <button id="downloadBtn" type="button"
+        class="bg-yellow-500 text-white w-full py-3 px-24 rounded-full text-sm mt-6 hover:bg-yellow-600">
+        Download CSV
+      </button>
+      <button id="graphBtn" type="button"
+        class="border border-green-500 text-black w-full py-3 px-24 rounded-full text-sm mt-6 hover:bg-green-400 hover:text-white">
+        Graph
+      </button>
+    </form>
+  </div>
+  <div class="flex flex-col items-center gap-4 pb-4" style="flex: 75%">
+    <div id="canvasContainer" class="flex flex-col items-center">
+      <div>
+        <span>Current time: </span>
+        <span id="timeEl">0</span>
+      </div>
+      <canvas class="scene"></canvas>
     </div>
-    <div class="flex flex-col items-center" style="flex: 75%">
-      <div><span>Current time: </span><span id="timeEl">0</span></div>
-      <canvas> </canvas>
+
+    <div class="hiddenEl flex flex-col items-center" id="cytoContainer">
+      <span>Graph</span>
+      <div id="cyto">
+      </div>
     </div>
-    <script src="lodash.js"></script>
-    <script src="./index.js"></script>
-  </body>
+  </div>
+  <script src="lodash.js"></script>
+  <script src="./index.js"></script>
+
+</body>
+
 </html>

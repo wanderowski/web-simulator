@@ -1,3 +1,49 @@
+const cytoContainer = document.querySelector("#cytoContainer");
+const canvasContainer = document.querySelector("#canvasContainer");
+let cy = cytoscape({
+  container: document.getElementById("cyto"),
+  elements: [
+    {
+      group: "nodes",
+      data: { id: "a" },
+      position: { x: 100, y: 100 },
+    },
+    {
+      group: "nodes",
+      data: { id: "b" },
+      position: { x: 150, y: 200 },
+    },
+    {
+      group: "edges",
+      data: { id: "ab", source: "a", target: "b" },
+    },
+  ],
+  style: [
+    // the stylesheet for the graph
+    {
+      selector: "node",
+      style: {
+        "background-color": "#003153",
+        label: "data(id)",
+      },
+    },
+
+    {
+      selector: "edge",
+      style: {
+        width: 3,
+        "line-color": "#ccc",
+        "target-arrow-color": "#ccc",
+        "target-arrow-shape": "triangle",
+        "curve-style": "bezier",
+      },
+    },
+  ],
+  layout: {
+    name: "preset",
+  },
+});
+
 const canvas = document.querySelector("canvas");
 const c = canvas.getContext("2d");
 
@@ -5,8 +51,14 @@ canvas.width = 700;
 canvas.height = 700;
 
 const startSimBtn = document.querySelector("#startSimBtn");
-const stopSimBtn = document.querySelector("#stopSimBtn");
+const downloadBtn = document.querySelector("#downloadBtn");
+const graphBtn = document.querySelector("#graphBtn");
 const routingSelect = document.querySelector("#routingSelect");
+
+graphBtn.addEventListener("click", () => {
+  cytoContainer.classList.toggle("hiddenEl");
+  canvasContainer.classList.toggle("hiddenEl");
+});
 
 const modalEl = document.querySelector("#modalEl");
 const timeEl = document.querySelector("#timeEl");
