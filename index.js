@@ -178,16 +178,16 @@ function calculateVelocity(source, destination) {
 function getRandomPath() {
   const path = [
     [
-      Math.random() * (canvas.width - 100) + 50,
-      Math.random() * (canvas.width - 100) + 50,
+      Math.random() * (canvas.width - offset) + 50,
+      Math.random() * (canvas.width - offset) + 50,
     ],
     [
-      Math.random() * (canvas.width - 100) + 50,
-      Math.random() * (canvas.width - 100) + 50,
+      Math.random() * (canvas.width - offset) + 50,
+      Math.random() * (canvas.width - offset) + 50,
     ],
     [
-      Math.random() * (canvas.width - 100) + 50,
-      Math.random() * (canvas.width - 100) + 50,
+      Math.random() * (canvas.width - offset) + 50,
+      Math.random() * (canvas.width - offset) + 50,
     ],
   ];
   return path;
@@ -200,8 +200,8 @@ function init() {
   nodes.push(
     new Node(
       canvas.width / 2,
-      75,
-      75,
+      offset,
+      50,
       "green",
       { x: 0, y: 0 },
       getRandomPath(),
@@ -216,8 +216,8 @@ function init() {
     ),
     new Node(
       canvas.width / 2,
-      canvas.height - 75,
-      75,
+      canvas.height - offset,
+      50,
       "green",
       { x: 0, y: 0 },
       getRandomPath(),
