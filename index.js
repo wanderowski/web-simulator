@@ -49,6 +49,7 @@ const c = canvas.getContext("2d");
 
 canvas.width = 700;
 canvas.height = 700;
+const offset = 100;
 
 const startSimBtn = document.querySelector("#startSimBtn");
 const downloadBtn = document.querySelector("#downloadBtn");
@@ -77,7 +78,8 @@ class Message {
     this.limit = limit;
     this.count = count;
   }
-  increment() {
+
+  incrementCount() {
     this.count++;
   }
 }
@@ -108,12 +110,18 @@ class Node {
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     c.strokeStyle = this.color;
     c.stroke();
+    c.closePath();
     c.fillStyle = this.color;
     c.fillText(
       `Node ${this.id}`,
       this.x - this.radius,
       this.y - this.radius - 5
     );
+    c.beginPath();
+    c.fillStyle = "black";
+    c.arc(this.x, this.y, 2, 0, 2 * Math.PI);
+    c.fill();
+    c.closePath();
   }
 
   update() {
@@ -186,6 +194,7 @@ function getRandomPath() {
 }
 
 function init() {
+  stopSim = false;
   nodes = [];
   currentTime = 0;
   nodes.push(
@@ -201,7 +210,7 @@ function init() {
         0,
         0,
         1,
-        routing == "epidemic" ? "Hello from epidemic!" : "Hello from SNW",
+        routing == "epidemic" ? "Hello from epidemic!" : "Hello from SNW!",
         routing == "epidemic" ? null : Math.floor(numOfNodes / 2)
       )
     ),
@@ -247,6 +256,7 @@ function animate() {
         const dist = Math.hypot(node.x - otherNode.x, node.y - otherNode.y);
         // Detect the intersection of two coverage areas of nodes
         if (dist <= node.radius && node.id !== otherNode.id) {
+          // check if the node has been connected or it's a new connection
           if (!node.currConnectedNodes.includes(otherNode.id)) {
             if (node.message && !otherNode.message && routing == "epidemic") {
               otherNode.message = { ...node.message };
@@ -259,16 +269,35 @@ function animate() {
               }
             }
             if (node.message && !otherNode.message && routing == "snw") {
-              if (node.message?.count < node.message?.limit) {
-                otherNode.message = node.message;
-                node.message.increment();
+              if (node.id === 0 && node.message?.count === 0) {
+                const cloneMessage = Object.assign({}, node.message);
+                Object.setPrototypeOf(cloneMessage, Message.prototype);
+                cloneMessage.id = node.message.id + 1;
+                otherNode.message = cloneMessage;
+                otherNode.relaySource = true;
+                node.message?.incrementCount();
                 console.log(
                   `Successfully transmitted from Node ${node.id} to Node ${otherNode.id} with SnW routing`
                 );
-                if (otherNode.id === node.message?.destination) {
-                  console.log("Delivered!");
-                  stopSim = true;
-                }
+              } else if (
+                node.message.id !== 0 &&
+                node.message?.count < node.message?.limit &&
+                node.relaySource &&
+                !otherNode.message
+              ) {
+                otherNode.message = node.message;
+
+                console.log(
+                  `(${
+                    node.message.count + 1
+                  }) Successfully transmitted from Node ${node.id} to Node ${
+                    otherNode.id
+                  } with SnW routing`
+                );
+                otherNode.message?.incrementCount();
+              } else if (otherNode.id === node.message?.destination) {
+                console.log("Delivered!");
+                stopSim = true;
               }
             }
             // console.log(`Node ${node.id} connected to Node ${otherNode.id}`);
