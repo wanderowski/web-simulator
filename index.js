@@ -79,10 +79,15 @@ class Message {
     this.text = text;
     this.limit = limit;
     this.count = count;
+    this.hopes = [];
   }
 
   incrementCount() {
     this.count++;
+  }
+
+  addHope(id) {
+    this.hopes.push(id);
   }
 }
 class Node {
@@ -170,8 +175,8 @@ function calculateVelocity(source, destination) {
   );
 
   const velocity = {
-    x: convertMetersToPixels(20) * Math.cos(angle),
-    y: convertMetersToPixels(20) * Math.sin(angle),
+    x: convertMetersToPixels(50) * Math.cos(angle),
+    y: convertMetersToPixels(50) * Math.sin(angle),
   };
 
   return velocity;
@@ -261,12 +266,18 @@ function animate() {
           // check if the node has been connected or it's a new connection
           if (!node.currConnectedNodes.includes(otherNode.id)) {
             if (node.message && !otherNode.message && routing == "epidemic") {
-              otherNode.message = { ...node.message };
+              const cloneMessage = Object.assign({}, node.message);
+              Object.setPrototypeOf(cloneMessage, Message.prototype);
+              cloneMessage.id = node.message.id + 1;
+              otherNode.message = cloneMessage;
               console.log(
                 `Successfully transmitted from Node ${node.id} to Node ${otherNode.id} with Epidemic`
               );
+              otherNode.message.addHope(node.id);
+
               if (otherNode.id === otherNode.message?.destination) {
                 console.log("Delivered!");
+                console.log("Hopes: ", otherNode.message?.hopes);
                 stopSim = true;
               }
             }
