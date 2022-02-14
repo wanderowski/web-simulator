@@ -69,6 +69,8 @@ let numOfNodes,
   routing,
   stopSim = false;
 
+const convertMetersToPixels = (meters) => meters / 16;
+
 class Message {
   constructor(id, source, destination, text, limit = null, count = 0) {
     this.id = id;
@@ -168,8 +170,8 @@ function calculateVelocity(source, destination) {
   );
 
   const velocity = {
-    x: 3 * Math.cos(angle),
-    y: 3 * Math.sin(angle),
+    x: convertMetersToPixels(20) * Math.cos(angle),
+    y: convertMetersToPixels(20) * Math.sin(angle),
   };
 
   return velocity;
@@ -201,7 +203,7 @@ function init() {
     new Node(
       canvas.width / 2,
       offset,
-      50,
+      convertMetersToPixels(900),
       "green",
       { x: 0, y: 0 },
       getRandomPath(),
@@ -217,7 +219,7 @@ function init() {
     new Node(
       canvas.width / 2,
       canvas.height - offset,
-      50,
+      convertMetersToPixels(900),
       "green",
       { x: 0, y: 0 },
       getRandomPath(),
@@ -230,7 +232,7 @@ function init() {
       new Node(
         path[0][0],
         path[0][1],
-        25,
+        convertMetersToPixels(500),
         "red",
         calculateVelocity(path[0], path[1]),
         path,
@@ -261,7 +263,7 @@ function animate() {
             if (node.message && !otherNode.message && routing == "epidemic") {
               otherNode.message = { ...node.message };
               console.log(
-                `Successfully transmitted from Node ${node.id} to Node ${otherNode.id}`
+                `Successfully transmitted from Node ${node.id} to Node ${otherNode.id} with Epidemic`
               );
               if (otherNode.id === otherNode.message?.destination) {
                 console.log("Delivered!");
