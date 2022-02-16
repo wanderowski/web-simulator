@@ -79,15 +79,10 @@ class Message {
     this.text = text;
     this.limit = limit;
     this.count = count;
-    this.hopes = [];
+    this.hops = [];
   }
-
-  incrementCount() {
-    this.count++;
-  }
-
-  addHope(id) {
-    this.hopes.push(id);
+  addHop(id) {
+    this.hops.push(id);
   }
 }
 class Node {
@@ -247,6 +242,13 @@ function init() {
   }
 }
 
+const copyMessageObj = (obj) => {
+  const copy = JSON.parse(JSON.stringify(obj));
+  copy.id = copy.id + 1;
+  Object.setPrototypeOf(copy, Message.prototype);
+  return copy;
+};
+
 let animationId;
 
 function animate() {
@@ -256,60 +258,72 @@ function animate() {
     c.fillStyle = "white";
     c.fillRect(0, 0, canvas.width, canvas.height);
 
-    nodes.forEach((node, nodeIndex) => {
+    nodes.forEach((node) => {
       node.update();
 
-      nodes.forEach((otherNode, otherNodeIndex) => {
+      nodes.forEach((otherNode) => {
         const dist = Math.hypot(node.x - otherNode.x, node.y - otherNode.y);
         // Detect the intersection of two coverage areas of nodes
         if (dist <= node.radius && node.id !== otherNode.id) {
-          // check if the node has been connected or it's a new connection
+          // check if the node has been already connected or it's a new connection
           if (!node.currConnectedNodes.includes(otherNode.id)) {
+            // check the type of routing
             if (node.message && !otherNode.message && routing == "epidemic") {
-              const cloneMessage = Object.assign({}, node.message);
-              Object.setPrototypeOf(cloneMessage, Message.prototype);
-              cloneMessage.id = node.message.id + 1;
-              otherNode.message = cloneMessage;
+              otherNode.message = copyMessageObj(node.message); // this is done in order to copy the Message and increment id
+              otherNode.message.addHop(
+                `Message ID: ${otherNode.message.id}. Hop: ${node.id} --> ${otherNode.id}`
+              );
               console.log(
                 `Successfully transmitted from Node ${node.id} to Node ${otherNode.id} with Epidemic`
               );
-              otherNode.message.addHope(node.id);
-
               if (otherNode.id === otherNode.message?.destination) {
                 console.log("Delivered!");
-                console.log("Hopes: ", otherNode.message?.hopes);
+                console.log("Hops: ", otherNode.message.hops);
                 stopSim = true;
               }
             }
             if (node.message && !otherNode.message && routing == "snw") {
-              if (node.id === 0 && node.message?.count === 0) {
-                const cloneMessage = Object.assign({}, node.message);
-                Object.setPrototypeOf(cloneMessage, Message.prototype);
-                cloneMessage.id = node.message.id + 1;
-                otherNode.message = cloneMessage;
+              // send the message from source node to the first relay node found
+              if (node.id === 0 && node.message.count === 0) {
+                otherNode.message = copyMessageObj(node.message);
                 otherNode.relaySource = true;
-                node.message?.incrementCount();
+                otherNode.message.addHop(
+                  `Message ID: ${otherNode.message.id}. Hop: ${node.id} --> ${otherNode.id}`
+                );
+                node.message.count = node.message.count + 1;
                 console.log(
                   `Successfully transmitted from Node ${node.id} to Node ${otherNode.id} with SnW routing`
                 );
-              } else if (
+              }
+              // checks if it's not the source node, if the count is less than limit, if it's the first relay source, if the
+              // receiving node does not have any message
+              if (
                 node.message.id !== 0 &&
                 node.message?.count < node.message?.limit &&
                 node.relaySource &&
                 !otherNode.message
               ) {
-                otherNode.message = node.message;
+                otherNode.message = copyMessageObj(node.message);
+                otherNode.message.addHop(
+                  `Message ID: ${otherNode.message.id}. Hop: ${node.id} --> ${otherNode.id}`
+                );
 
                 console.log(
                   `(${
-                    node.message.count + 1
+                    otherNode.message.count + 1
                   }) Successfully transmitted from Node ${node.id} to Node ${
                     otherNode.id
                   } with SnW routing`
                 );
-                otherNode.message?.incrementCount();
-              } else if (otherNode.id === node.message?.destination) {
+                node.message.count = node.message.count + 1; // increase the coutner for relay node so that we could limit num of messages
+              }
+              if (otherNode.id === node.message?.destination) {
+                otherNode.message = copyMessageObj(node.message);
+                otherNode.message.addHop(
+                  `Message ID: ${otherNode.message.id}. Hop: ${node.id} --> ${otherNode.id}`
+                );
                 console.log("Delivered!");
+                console.log("Hops: ", otherNode.message.hops);
                 stopSim = true;
               }
             }
@@ -350,11 +364,14 @@ function animate() {
       cancelAnimationFrame(animationId);
       startSimBtn.disabled = false;
       routingSelect.disabled = false;
-      exportToCsv();
+      downloadBtn.disabled = false;
+      downloadBtn.onclick = exportToCsv;
     }, 0);
   }
   currentTime++;
 }
+
+const drawGraph = () => {};
 
 const exportToCsv = () => {
   var CsvString = "";
@@ -370,6 +387,8 @@ const exportToCsv = () => {
   x.setAttribute("download", "simData.csv");
   document.body.appendChild(x);
   x.click();
+
+  drawGraph();
 };
 
 startSimBtn.addEventListener("click", (e) => {
@@ -384,6 +403,7 @@ startSimBtn.addEventListener("click", (e) => {
     init();
     startSimBtn.disabled = true;
     routingSelect.disabled = true;
+    downloadBtn.disabled = true;
 
     animate();
   }
