@@ -402,23 +402,21 @@ startSimBtn.addEventListener("click", async (e) => {
 
   batchMode = batchSwitch.checked;
   numOfSims = document.querySelector("#numOfSims").value * 1;
-  while (batchMode && curSim < numOfSims) {
-    console.log("hello");
-    numOfNodes = document.querySelector("#numOfNodes").value * 1;
-    simTime = document.querySelector("#simTime").value * 1;
-    routing = routingSelect.value;
+  numOfNodes = document.querySelector("#numOfNodes").value * 1;
+  simTime = document.querySelector("#simTime").value * 1;
+  routing = routingSelect.value;
 
-    if (numOfNodes && simTime && routing) {
-      console.log("hello x2");
-      logArray = [...Array(numOfNodes + 2)].map((e) =>
-        Array(numOfNodes + 2).fill(Array(0))
-      );
-      init();
-      batchSwitch.disabled = true;
-      startSimBtn.disabled = true;
-      routingSelect.disabled = true;
-      downloadBtn.disabled = true;
-      await animate();
-    }
+  if (numOfNodes && simTime && routing) {
+    console.clear();
+    console.log("hello x2");
+    logArray = [...Array(numOfNodes + 2)].map((e) =>
+      Array(numOfNodes + 2).fill(Array(0))
+    );
+    init();
+    batchSwitch.disabled = true;
+    startSimBtn.disabled = true;
+    routingSelect.disabled = true;
+    downloadBtn.disabled = true;
+    await animate();
   }
 });
