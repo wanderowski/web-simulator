@@ -54,6 +54,7 @@ const offset = 100;
 const startSimBtn = document.querySelector("#startSimBtn");
 const downloadBtn = document.querySelector("#downloadBtn");
 const graphBtn = document.querySelector("#graphBtn");
+const stopBtn = document.querySelector("#stopBtn");
 const routingSelect = document.querySelector("#routingSelect");
 const batchSwitch = document.querySelector("#batchSwitch");
 const numOfSimsLabel = document.querySelector("#numOfSimsLabel");
@@ -61,6 +62,10 @@ const numOfSimsLabel = document.querySelector("#numOfSimsLabel");
 graphBtn.addEventListener("click", () => {
   cytoContainer.classList.toggle("hiddenEl");
   canvasContainer.classList.toggle("hiddenEl");
+});
+stopBtn.addEventListener("click", () => {
+  stopSim = true;
+  setTimeout(() => startSimBtn.click(), 100);
 });
 
 const modalEl = document.querySelector("#modalEl");
@@ -367,10 +372,11 @@ const animate = async () => {
       curSim++;
       resolve();
 
-      // cancelAnimationFrame(animationId);
+      cancelAnimationFrame(animationId);
       startSimBtn.disabled = false;
       routingSelect.disabled = false;
       downloadBtn.disabled = false;
+      stopBtn.disabled = true;
       downloadBtn.onclick = exportToCsv;
     }
     currentTime++;
@@ -417,6 +423,7 @@ startSimBtn.addEventListener("click", async (e) => {
     startSimBtn.disabled = true;
     routingSelect.disabled = true;
     downloadBtn.disabled = true;
+    stopBtn.disabled = false;
     await animate();
   }
 });
