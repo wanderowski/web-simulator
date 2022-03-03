@@ -182,8 +182,8 @@ function calculateVelocity(source, destination) {
   );
 
   const velocity = {
-    x: convertMetersToPixels(35) * Math.cos(angle),
-    y: convertMetersToPixels(35) * Math.sin(angle),
+    x: convertMetersToPixels(23) * Math.cos(angle),
+    y: convertMetersToPixels(23) * Math.sin(angle),
   };
 
   return velocity;
