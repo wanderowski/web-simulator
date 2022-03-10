@@ -227,7 +227,7 @@ function init() {
         0,
         1,
         routing == "epidemic" ? "Hello from epidemic!" : "Hello from SNW!",
-        routing == "epidemic" ? null : Math.floor(numOfNodes / 2)
+        routing == "epidemic" ? null : Math.floor((numOfNodes * 3) / 4)
       )
     ),
     new Node(
