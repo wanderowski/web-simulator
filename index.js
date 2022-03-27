@@ -213,6 +213,7 @@ function init() {
   stopSim = false;
   nodes = [];
   currentTime = 0;
+
   nodes.push(
     new Node(
       canvas.width / 2,
@@ -240,6 +241,7 @@ function init() {
       1
     )
   );
+
   for (let i = 0; i < numOfNodes; i++) {
     const path = getRandomPath();
     nodes.push(
@@ -266,6 +268,10 @@ const copyMessageObj = (obj) => {
 let deliveredSim = 0;
 let numOfHops = 0;
 
+const getTransmissionProb = () => {
+  return Math.random();
+};
+
 const animate = async () => {
   return new Promise((resolve, reject) => {
     timeEl.innerHTML = currentTime;
@@ -281,10 +287,19 @@ const animate = async () => {
           const dist = Math.hypot(node.x - otherNode.x, node.y - otherNode.y);
           // Detect the intersection of two coverage areas of nodes
           if (dist <= node.radius && node.id !== otherNode.id) {
+            if (getTransmissionProb() > 0.9) {
+              node.currConnectedNodes.push(otherNode.id);
+            }
+
             // check if the node has been already connected or it's a new connection
             if (!node.currConnectedNodes.includes(otherNode.id)) {
               // check the type of routing
-              if (node.message && !otherNode.message && routing == "epidemic") {
+              if (
+                node.message &&
+                !otherNode.message &&
+                routing == "epidemic" &&
+                !node.currConnectedNodes.includes(otherNode.id)
+              ) {
                 otherNode.message = copyMessageObj(node.message); // this is done in order to copy the Message and increment id
                 otherNode.message.addHop(
                   `Message ID: ${otherNode.message.id}. Hop: ${node.id} --> ${otherNode.id}`
@@ -302,7 +317,12 @@ const animate = async () => {
                   resolve();
                 }
               }
-              if (node.message && !otherNode.message && routing == "snw") {
+              if (
+                node.message &&
+                !otherNode.message &&
+                routing == "snw" &&
+                !node.currConnectedNodes.includes(otherNode.id)
+              ) {
                 // send the message from source node to the first relay node found
                 if (node.id === 0 && node.message.count === 0) {
                   otherNode.message = copyMessageObj(node.message);
