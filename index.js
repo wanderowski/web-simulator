@@ -56,7 +56,6 @@ const downloadBtn = document.querySelector("#downloadBtn");
 const graphBtn = document.querySelector("#graphBtn");
 const stopBtn = document.querySelector("#stopBtn");
 const routingSelect = document.querySelector("#routingSelect");
-const batchSwitch = document.querySelector("#batchSwitch");
 const numOfSimsLabel = document.querySelector("#numOfSimsLabel");
 
 graphBtn.addEventListener("click", () => {
@@ -65,7 +64,6 @@ graphBtn.addEventListener("click", () => {
 });
 stopBtn.addEventListener("click", () => {
   stopSim = true;
-  setTimeout(() => startSimBtn.click(), 100);
 });
 
 const modalEl = document.querySelector("#modalEl");
@@ -171,7 +169,6 @@ let currentTime = 0;
 let numOfNodes,
   simTime,
   routing,
-  batchMode = false,
   stopSim = false,
   curSim = 0;
 
@@ -406,7 +403,7 @@ const animate = async () => {
 const drawGraph = () => {};
 
 const exportToCsv = () => {
-  var CsvString = "";
+  let CsvString = "";
   logArray.forEach((RowItem, RowItemIndex) => {
     RowItem.forEach((ColItem) => {
       CsvString += ColItem + ";";
@@ -414,7 +411,7 @@ const exportToCsv = () => {
     CsvString += "\r\n";
   });
   CsvString = "data:application/csv," + encodeURIComponent(CsvString);
-  var x = document.createElement("A");
+  let x = document.createElement("A");
   x.setAttribute("href", CsvString);
   x.setAttribute("download", "simData.csv");
   document.body.appendChild(x);
@@ -426,7 +423,6 @@ const exportToCsv = () => {
 startSimBtn.addEventListener("click", async (e) => {
   e.preventDefault();
 
-  batchMode = batchSwitch.checked;
   numOfSims = document.querySelector("#numOfSims").value * 1;
   numOfNodes = document.querySelector("#numOfNodes").value * 1;
   simTime = document.querySelector("#simTime").value * 1;
@@ -434,12 +430,10 @@ startSimBtn.addEventListener("click", async (e) => {
 
   if (numOfNodes && simTime && routing) {
     console.clear();
-    console.log("hello x2");
     logArray = [...Array(numOfNodes + 2)].map((e) =>
       Array(numOfNodes + 2).fill(Array(0))
     );
     init();
-    batchSwitch.disabled = true;
     startSimBtn.disabled = true;
     routingSelect.disabled = true;
     downloadBtn.disabled = true;
