@@ -105,13 +105,13 @@ class Node {
     this.message = message;
   }
   draw() {
-    this.path?.forEach((point) => {
-      c.beginPath();
-      c.arc(point[0], point[1], 2, 0, Math.PI * 2);
-      c.strokeStyle = "blue";
-      c.stroke();
-      c.closePath();
-    });
+    // this.path?.forEach((point) => {
+    //   c.beginPath();
+    //   c.arc(point[0], point[1], 2, 0, Math.PI * 2);
+    //   c.strokeStyle = "blue";
+    //   c.stroke();
+    //   c.closePath();
+    // });
     c.beginPath();
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     c.strokeStyle = this.color;
