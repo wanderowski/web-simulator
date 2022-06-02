@@ -64,6 +64,7 @@ graphBtn.addEventListener("click", () => {
 });
 stopBtn.addEventListener("click", () => {
   stopSim = true;
+  setTimeout(() => startSimBtn.click(), 100);
 });
 
 const modalEl = document.querySelector("#modalEl");
@@ -105,13 +106,13 @@ class Node {
     this.message = message;
   }
   draw() {
-    // this.path?.forEach((point) => {
-    //   c.beginPath();
-    //   c.arc(point[0], point[1], 2, 0, Math.PI * 2);
-    //   c.strokeStyle = "blue";
-    //   c.stroke();
-    //   c.closePath();
-    // });
+    this.path?.forEach((point) => {
+      c.beginPath();
+      c.arc(point[0], point[1], 2, 0, Math.PI * 2);
+      c.strokeStyle = "blue";
+      c.stroke();
+      c.closePath();
+    });
     c.beginPath();
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     c.strokeStyle = this.color;
@@ -215,7 +216,7 @@ function init() {
     new Node(
       canvas.width / 2,
       offset,
-      convertMetersToPixels(900),
+      convertMetersToPixels(1500),
       "green",
       { x: 0, y: 0 },
       getRandomPath(),
@@ -225,13 +226,13 @@ function init() {
         0,
         1,
         routing == "epidemic" ? "Hello from epidemic!" : "Hello from SNW!",
-        routing == "epidemic" ? null : Math.floor((numOfNodes * 3) / 4)
+        routing == "epidemic" ? null : Math.floor((numOfNodes * 1) / 2)
       )
     ),
     new Node(
       canvas.width / 2,
       canvas.height - offset,
-      convertMetersToPixels(900),
+      convertMetersToPixels(1500),
       "green",
       { x: 0, y: 0 },
       getRandomPath(),
@@ -245,7 +246,7 @@ function init() {
       new Node(
         path[0][0],
         path[0][1],
-        convertMetersToPixels(500),
+        convertMetersToPixels(1000),
         "red",
         calculateVelocity(path[0], path[1]),
         path,
@@ -393,7 +394,7 @@ const animate = async () => {
       startSimBtn.disabled = false;
       routingSelect.disabled = false;
       downloadBtn.disabled = false;
-      stopBtn.disabled = true;
+      // stopBtn.disabled = true;
       downloadBtn.onclick = exportToCsv;
     }
     currentTime++;
