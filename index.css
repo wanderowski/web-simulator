@@ -42,3 +42,9 @@ select:disabled {
 .hiddenEl {
   display: none !important;
 }
+
+input:disabled {
+  cursor: not-allowed;
+  background-color: #dbdbdb;
+  color: #808080;
+}

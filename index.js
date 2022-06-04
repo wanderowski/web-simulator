@@ -56,7 +56,7 @@ const downloadBtn = document.querySelector("#downloadBtn");
 const graphBtn = document.querySelector("#graphBtn");
 const stopBtn = document.querySelector("#stopBtn");
 const routingSelect = document.querySelector("#routingSelect");
-const numOfSimsLabel = document.querySelector("#numOfSimsLabel");
+const probabilityInput = document.querySelector("#probabilityInput");
 
 graphBtn.addEventListener("click", () => {
   cytoContainer.classList.toggle("hiddenEl");
@@ -64,16 +64,44 @@ graphBtn.addEventListener("click", () => {
 });
 stopBtn.addEventListener("click", () => {
   stopSim = true;
-  setTimeout(() => startSimBtn.click(), 100);
+});
+routingSelect.addEventListener("change", (event) => {
+  if (event.target.value === "epidemic") {
+    probabilityInput.disabled = false;
+  } else {
+    probabilityInput.disabled = true;
+  }
+});
+startSimBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  numOfNodes = document.querySelector("#numOfNodes").value * 1;
+  simTime = document.querySelector("#simTime").value * 1;
+  routing = routingSelect.value;
+  probability = document.querySelector("#probabilityInput").value / 100;
+
+  if (
+    numOfNodes &&
+    simTime &&
+    routing &&
+    probability >= 0 &&
+    probability <= 1
+  ) {
+    console.clear();
+    logArray = [...Array(numOfNodes + 2)].map((e) =>
+      Array(numOfNodes + 2).fill(Array(0))
+    );
+    init();
+    startSimBtn.disabled = true;
+    routingSelect.disabled = true;
+    downloadBtn.disabled = true;
+    stopBtn.disabled = false;
+    await animate();
+  }
 });
 
-const modalEl = document.querySelector("#modalEl");
 const timeEl = document.querySelector("#timeEl");
 
-const handleCheckChange = (event) => {
-  numOfSims.classList.toggle("hiddenEl");
-  numOfSimsLabel.classList.toggle("hiddenEl");
-};
 const convertMetersToPixels = (meters) => meters / 16;
 
 class Message {
@@ -106,13 +134,13 @@ class Node {
     this.message = message;
   }
   draw() {
-    this.path?.forEach((point) => {
-      c.beginPath();
-      c.arc(point[0], point[1], 2, 0, Math.PI * 2);
-      c.strokeStyle = "blue";
-      c.stroke();
-      c.closePath();
-    });
+    // this.path?.forEach((point) => {
+    //   c.beginPath();
+    //   c.arc(point[0], point[1], 2, 0, Math.PI * 2);
+    //   c.strokeStyle = "blue";
+    //   c.stroke();
+    //   c.closePath();
+    // });
     c.beginPath();
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     c.strokeStyle = this.color;
@@ -164,46 +192,18 @@ class Node {
   }
 }
 
-let nodes = [];
-let logArray = [];
-let currentTime = 0;
 let numOfNodes,
   simTime,
   routing,
   stopSim = false,
-  curSim = 0;
+  curSim = 0,
+  deliveredSim = 0,
+  numOfHops = 0,
+  currentTime = 0,
+  probability = 1,
+  logArray = [],
+  nodes = [];
 
-function calculateVelocity(source, destination) {
-  const angle = Math.atan2(
-    destination[1] - source[1],
-    destination[0] - source[0]
-  );
-
-  const velocity = {
-    x: convertMetersToPixels(23) * Math.cos(angle),
-    y: convertMetersToPixels(23) * Math.sin(angle),
-  };
-
-  return velocity;
-}
-
-function getRandomPath() {
-  const path = [
-    [
-      Math.random() * (canvas.width - offset) + 50,
-      Math.random() * (canvas.width - offset) + 50,
-    ],
-    [
-      Math.random() * (canvas.width - offset) + 50,
-      Math.random() * (canvas.width - offset) + 50,
-    ],
-    [
-      Math.random() * (canvas.width - offset) + 50,
-      Math.random() * (canvas.width - offset) + 50,
-    ],
-  ];
-  return path;
-}
 let animationId;
 
 function init() {
@@ -219,7 +219,7 @@ function init() {
       convertMetersToPixels(1500),
       "green",
       { x: 0, y: 0 },
-      getRandomPath(),
+      getRandomPath(canvas, offset),
       0,
       new Message(
         0,
@@ -256,27 +256,12 @@ function init() {
   }
 }
 
-const copyMessageObj = (obj) => {
-  const copy = JSON.parse(JSON.stringify(obj));
-  copy.id = copy.id + 1;
-  Object.setPrototypeOf(copy, Message.prototype);
-  return copy;
-};
-
-let deliveredSim = 0;
-let numOfHops = 0;
-
-const getTransmissionProb = () => {
-  return Math.random();
-};
-
 const animate = async () => {
   return new Promise((resolve, reject) => {
     timeEl.innerHTML = currentTime;
 
     if (currentTime < simTime && !stopSim) {
-      c.fillStyle = "white";
-      c.fillRect(0, 0, canvas.width, canvas.height);
+      eraseCanvas(c, canvas);
 
       nodes.forEach((node) => {
         node.update();
@@ -285,7 +270,7 @@ const animate = async () => {
           const dist = Math.hypot(node.x - otherNode.x, node.y - otherNode.y);
           // Detect the intersection of two coverage areas of nodes
           if (dist <= node.radius && node.id !== otherNode.id) {
-            if (getTransmissionProb() > 0.9) {
+            if (getTransmissionProb() > probability) {
               node.currConnectedNodes.push(otherNode.id);
             }
 
@@ -307,9 +292,6 @@ const animate = async () => {
                 );
                 if (otherNode.id === otherNode.message?.destination) {
                   console.log("Delivered!");
-                  deliveredSim++;
-                  curSim++;
-
                   console.log("Hops: ", otherNode.message.hops);
                   stopSim = true;
                   resolve();
@@ -362,7 +344,6 @@ const animate = async () => {
                   );
                   console.log("Delivered!");
                   console.log("Hops: ", otherNode.message.hops);
-                  deliveredSim++;
                   stopSim = true;
                 }
               }
@@ -387,23 +368,69 @@ const animate = async () => {
       });
       animationId = requestAnimationFrame(animate);
     } else {
-      curSim++;
       resolve();
-
       cancelAnimationFrame(animationId);
       startSimBtn.disabled = false;
       routingSelect.disabled = false;
       downloadBtn.disabled = false;
-      // stopBtn.disabled = true;
+      stopBtn.disabled = true;
       downloadBtn.onclick = exportToCsv;
     }
     currentTime++;
   });
 };
 
+export function getRandomPath() {
+  const path = [
+    [
+      Math.random() * (canvas.width - offset) + 50,
+      Math.random() * (canvas.width - offset) + 50,
+    ],
+    [
+      Math.random() * (canvas.width - offset) + 50,
+      Math.random() * (canvas.width - offset) + 50,
+    ],
+    [
+      Math.random() * (canvas.width - offset) + 50,
+      Math.random() * (canvas.width - offset) + 50,
+    ],
+  ];
+  return path;
+}
+
+export function calculateVelocity(source, destination) {
+  const angle = Math.atan2(
+    destination[1] - source[1],
+    destination[0] - source[0]
+  );
+
+  const velocity = {
+    x: convertMetersToPixels(23) * Math.cos(angle),
+    y: convertMetersToPixels(23) * Math.sin(angle),
+  };
+
+  return velocity;
+}
+
+function copyMessageObj(obj) {
+  const copy = JSON.parse(JSON.stringify(obj));
+  copy.id = copy.id + 1;
+  Object.setPrototypeOf(copy, Message.prototype);
+  return copy;
+}
+
+function getTransmissionProb() {
+  return Math.random();
+}
+
+function eraseCanvas() {
+  c.fillStyle = "white";
+  c.fillRect(0, 0, canvas.width, canvas.height);
+}
+
 const drawGraph = () => {};
 
-const exportToCsv = () => {
+function exportToCsv() {
   let CsvString = "";
   logArray.forEach((RowItem, RowItemIndex) => {
     RowItem.forEach((ColItem) => {
@@ -419,26 +446,4 @@ const exportToCsv = () => {
   x.click();
 
   drawGraph();
-};
-
-startSimBtn.addEventListener("click", async (e) => {
-  e.preventDefault();
-
-  numOfSims = document.querySelector("#numOfSims").value * 1;
-  numOfNodes = document.querySelector("#numOfNodes").value * 1;
-  simTime = document.querySelector("#simTime").value * 1;
-  routing = routingSelect.value;
-
-  if (numOfNodes && simTime && routing) {
-    console.clear();
-    logArray = [...Array(numOfNodes + 2)].map((e) =>
-      Array(numOfNodes + 2).fill(Array(0))
-    );
-    init();
-    startSimBtn.disabled = true;
-    routingSelect.disabled = true;
-    downloadBtn.disabled = true;
-    stopBtn.disabled = false;
-    await animate();
-  }
-});
+}
