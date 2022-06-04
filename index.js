@@ -70,6 +70,7 @@ routingSelect.addEventListener("change", (event) => {
     probabilityInput.disabled = false;
   } else {
     probabilityInput.disabled = true;
+    probabilityInput.value = "100";
   }
 });
 startSimBtn.addEventListener("click", async (e) => {
@@ -196,9 +197,6 @@ let numOfNodes,
   simTime,
   routing,
   stopSim = false,
-  curSim = 0,
-  deliveredSim = 0,
-  numOfHops = 0,
   currentTime = 0,
   probability = 1,
   logArray = [],
